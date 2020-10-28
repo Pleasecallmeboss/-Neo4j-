@@ -22,7 +22,7 @@ def app():
                 json = GetDataFromJson(f)
                 print()
                 opt = app.getOption(
-                    json['singer'], "Singer", json['song_name'], "Song")
+                    json['singer'], json['song_name'])
                 app.create_Relationship(
                     json['singer'],
                     "Singer",
@@ -33,9 +33,7 @@ def app():
 
                 opt = app.getOption(
                     json['write_music'],
-                    "Composer",
-                    json['song_name'],
-                    "Song")
+                    json['song_name'])
                 app.create_Relationship(
                     json['write_music'],
                     "Composer",
@@ -46,9 +44,7 @@ def app():
 
                 opt = app.getOption(
                     json['write_words'],
-                    "Lyric_Writer",
-                    json['song_name'],
-                    "Song")
+                    json['song_name'])
                 app.create_Relationship(
                     json['write_words'],
                     "Lyric_Writer",

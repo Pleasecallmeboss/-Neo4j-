@@ -78,24 +78,28 @@ class App:
             "RETURN p1, p2 "
         )
         query2 = (
-            "MATCH (p1:" + aswhat1 + ")"
+            "MATCH (p1)"
             "WHERE p1.name = $name_one "
+            "SET p1:" + aswhat1 + " "
             "CREATE (p2:" + aswhat2 + " { name: $name_two }) "
             "CREATE (p1)-[:" + ship + "]->(p2) "
             "RETURN p1, p2 "
         )
         query3 = (
-            "MATCH (p2:" + aswhat2 + ")"
+            "MATCH (p2)"
             "WHERE p2.name = $name_two "
+            "SET p2:" + aswhat2 + " "
             "CREATE (p1:" + aswhat1 + " { name: $name_one }) "
             "CREATE (p1)-[:" + ship + "]->(p2) "
             "RETURN p1, p2 "
         )
         query4 = (
-            "MATCH (p1:" + aswhat1 + ")"
+            "MATCH (p1) "
             "WHERE p1.name = $name_one "
-            "MATCH (p2:" + aswhat2 + ")"
+            "MATCH (p2) "
             "WHERE p2.name = $name_two "
+            "SET p1:" + aswhat1 + " "
+            "SET p2:" + aswhat2 + " "
             "CREATE (p1)-[:" + ship + "]->(p2) "
             "RETURN p1, p2 "
         )
@@ -135,32 +139,32 @@ class App:
     #     result = tx.run(query, singer_name=singer_name)
     #     return [record["name"] for record in result]
 
-    def find_thing(self, name , aswhat):
+    def find_thing(self, name ):
         with self.driver.session() as session:
-            result = session.read_transaction(self._find_and_return_thing, name, aswhat)
+            result = session.read_transaction(self._find_and_return_thing, name)
             if(result == []):
                 print("Not Found!")
                 return False
             else:
                 for record in result:
-                    print("Found {aswhat} : {record}".format(record=record, aswhat=aswhat))
+                    print("Found {aswhat} : {record}".format(record=record["name"], aswhat=record["label"]))
                 return True
 
 
 
     @staticmethod
-    def _find_and_return_thing(tx, name , aswhat):
+    def _find_and_return_thing(tx, name ):
         query = (
-            "MATCH (p:" + aswhat + ") "
+            "MATCH (p) "
             "WHERE p.name = $name "
-            "RETURN p.name AS name"
+            "RETURN p.name AS name,labels(p) AS label"
         )
         result = tx.run(query, name=name)
-        return [record["name"] for record in result]
+        return [{"name":record["name"], "label":record["label"]} for record in result]
 
-    def getOption(self, name_one, aswhat1,name_two, aswhat2):
-        a = self.find_thing(name_one, aswhat1)
-        b = self.find_thing(name_two, aswhat2)
+    def getOption(self, name_one,name_two):
+        a = self.find_thing(name_one)
+        b = self.find_thing(name_two)
         if(a==False and b == False):
             return 1
         elif(a==True and b == False):
@@ -181,16 +185,15 @@ if __name__ == "__main__":
     app = App(url, user, password)
     cypher = "MATCH (n) detach delete n"
     app.cyphertx(cypher)
-    opt = app.getOption("Alice","Singer","飞云之上","Song")
-    print(opt)
-    app.create_Relationship("Alice","Singer","飞云之上","Song","Singing",1)
-    opt = app.getOption("Alice", "Singer", "飞云之上", "Song")
-    print(opt)
+    opt = app.getOption("Alice","飞云之上")
+    app.create_Relationship("Alice","Composer","飞云之上","Song","Compose",opt)
+    opt = app.getOption("Bob", "飞云之上")
+    app.create_Relationship("Bob", "Composer", "飞云之上","Song", "Compose", opt)
+    opt = app.getOption("Alice", "你的故事")
+    app.create_Relationship("Alice","Singer","你的故事","Song","Singing",opt)
 
-    app.create_Relationship("Bob", "Composer", "飞云之上","Song", "Compose", 3)
-    # app.create_Relationship("Alice","Singer","你的故事","Song","Singing",4)
-
-    app.find_thing("Singer","Alice")
+    app.find_thing("Alice")
+    app.find_thing("Bob")
     # app.find_thing("Composer", "Bob")
     # app.find_thing("Song","飞云之上")
     # app.find_thing("Song", "fei")
