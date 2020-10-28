@@ -13,7 +13,7 @@ def app():
     app = App(url, user, password)
     cypher = "MATCH (n) detach delete n"
     app.cyphertx(cypher)
-    Dirs = getDirList("E:\\Python_Projects\\Neo4j_PyCharm\\Data_Lyric")
+    Dirs = getDirList(".\\Data_Lyric")
     for dir in Dirs:
         dirs = getDirList(dir)
         for d in dirs:
