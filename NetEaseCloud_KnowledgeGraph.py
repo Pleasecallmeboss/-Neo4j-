@@ -174,6 +174,55 @@ class App:
         elif(a==True and b == True):
             return 4
 
+    # match(d: Song), (a{name:"AJ张杰"})
+    # where(a) - [: Singing]->(d)
+    # return d.name
+    def query(self, dicts):
+        with self.driver.session() as session:
+            result = session.read_transaction(self._query, dicts)
+            if(result == [[]]):
+                print("Not Found!")
+
+            else:
+                c = set(result[0])
+                for record in result:
+                    c = c&set(record)
+                for ca in c:
+                    print("Found {record}".format(record=ca))
+
+
+            return result
+    @staticmethod
+    def _query(tx, dicts):
+        nr = []
+        v = []
+        for dict in dicts:
+            if(dict["PartOfSpeech"] == "nr"):
+                nr.append("\""+dict["Word"]+"\"")
+                # nr.append(dict["Word"])
+            elif(dict["PartOfSpeech"] == "v"):
+                if(dict["Word"] == "演唱"):
+                    v.append("Singing")
+                elif(dict["Word"] == "作词"):
+                    v.append("Lyrics")
+                elif(dict["Word"] == "作曲"):
+                    v.append("Compose")
+            elif (dict["PartOfSpeech"] == "n" and dict["Word"] == "歌曲"):
+                n = "Song"
+        num = len(nr)
+        i = 0
+        lists = []
+        while(i != num):
+            query = (
+                "match(d: "+ n +"), (a{name:"+ nr[i] +"}) "
+                "where(a) - [: "+ v[i] +"]->(d) "
+                "return d.name as name"
+            )
+            result = tx.run(query)
+            i= i+1
+            lists.append([record["name"] for record in result])
+        return lists
+
 if __name__ == "__main__":
     # See https://neo4j.com/developer/aura-connect-driver/ for Aura specific connection URL.
     scheme = "bolt"  # Connecting to Aura, use the "neo4j+s" URI scheme
@@ -183,21 +232,30 @@ if __name__ == "__main__":
     user = "neo4j"
     password = "neo4jjj"
     app = App(url, user, password)
-    cypher = "MATCH (n) detach delete n"
-    app.cyphertx(cypher)
-    opt = app.getOption("Alice","飞云之上")
-    app.create_Relationship("Alice","Composer","飞云之上","Song","Compose",opt)
-    opt = app.getOption("Bob", "飞云之上")
-    app.create_Relationship("Bob", "Composer", "飞云之上","Song", "Compose", opt)
-    opt = app.getOption("Alice", "你的故事")
-    app.create_Relationship("Alice","Singer","你的故事","Song","Singing",opt)
-
-    app.find_thing("Alice")
-    app.find_thing("Bob")
+    # cypher = "MATCH (n) detach delete n"
+    # app.cyphertx(cypher)
+    # opt = app.getOption("Alice","飞云之上")
+    # app.create_Relationship("Alice","Composer","飞云之上","Song","Compose",opt)
+    # opt = app.getOption("Bob", "飞云之上")
+    # app.create_Relationship("Bob", "Composer", "飞云之上","Song", "Compose", opt)
+    # opt = app.getOption("Alice", "你的故事")
+    # app.create_Relationship("Alice","Singer","你的故事","Song","Singing",opt)
+    #
+    # app.find_thing("Alice")
+    # app.find_thing("Bob")
     # app.find_thing("Composer", "Bob")
     # app.find_thing("Song","飞云之上")
     # app.find_thing("Song", "fei")
     #Singer Composer Lyric_Writer Song
     # app.find_singer("Alice")
+
+    dict = [{'Word': 'AJ张杰', 'PartOfSpeech': 'nr'},
+            {'Word': '演唱', 'PartOfSpeech': 'v'},
+            {'Word': '张杰', 'PartOfSpeech': 'nr'},
+            {'Word': '作曲', 'PartOfSpeech': 'v'},
+            {'Word': '歌曲', 'PartOfSpeech': 'n'},
+            {'Word': '有', 'PartOfSpeech': 'v'},
+            ]
+    app.query(dict)
     app.close()
 

@@ -17,7 +17,7 @@ def GetDataFromJson(filename):
         except KeyError:
             print("没有此键值")
 
-        #print('这是文件中的json数据：', json_data)
+        print('这是文件中的json数据：', json_data)
         return json_data
 
 
@@ -53,7 +53,7 @@ def getDirList(p):
 
 
 if __name__ == '__main__':
-    Dirs = getDirList("E:\\Python_Projects\\Neo4j_PyCharm\\Data_Lyric")
+    Dirs = getDirList(".\Data_Lyric")
     for dir in Dirs:
         dirs = getDirList(dir)
         for d in dirs:
